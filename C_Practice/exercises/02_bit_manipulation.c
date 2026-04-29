@@ -29,12 +29,36 @@ void problem_1() {
     printf(" (0x%02X)\n", b);
     
     // TODO: Calculate and print:
-    // - a & b (AND)
-    // - a | b (OR)
-    // - a ^ b (XOR)
-    // - ~a (NOT)
-    // - a << 1 (left shift)
-    // - a >> 1 (right shift)
+    // a & b (AND)
+    printf("a & b = ");
+    print_binary(a & b);
+    printf(" (0x%02X)\n", a & b);
+
+    // a | b (OR)
+    printf("a | b = ");
+    print_binary(a | b);
+    printf(" (0x%02X)\n", a | b);
+
+    // a ^ b (XOR)
+    printf("a ^ b = ");
+    print_binary(a ^ b);
+    printf(" (0x%02X)\n", a ^ b);
+    
+    // ~a (NOT)
+    printf("~a = ");
+    print_binary(~a);
+    printf(" (0x%02X)\n", ~a);
+    
+    // a << 1 (left shift)
+    printf("a << 1 = ");
+    print_binary(a << 1);
+    printf(" (0x%02X)\n", a << 1);
+    
+    // a >> 1 (right shift)
+    printf("a >> 1 = ");
+    print_binary(a >> 1);
+    printf(" (0x%02X)\n", a >> 1);
+    
 }
 
 // Problem 2: Set, clear, and toggle individual bits
@@ -48,12 +72,31 @@ void problem_2() {
     #define BIT_7 (1 << 7)
     
     // TODO: Implement these operations:
-    // 1. Set BIT_0 (hint: use |=)
-    // 2. Set BIT_3 (hint: use |=)
-    // 3. Clear BIT_0 (hint: use &= with ~)
-    // 4. Toggle BIT_7 (hint: use ^=)
-    
     // TODO: After each operation, print the binary representation
+
+    // 1. Set BIT_0
+    flags |= BIT_0;
+    printf("Set BIT 0 = ");
+    print_binary(flags);
+    printf(" (0x%02X)\n", flags);
+
+    // 2. Set BIT_3
+    flags |= BIT_3;
+    printf("Set BIT 3 = ");
+    print_binary(flags);
+    printf(" (0x%02X)\n", flags);
+
+    // 3. Clear BIT_0
+    flags = flags & ~BIT_0;
+    printf("Clear BIT 0 = ");
+    print_binary(flags);
+    printf(" (0x%02X)\n", flags);
+    
+    // 4. Toggle BIT_7
+    flags = flags ^ BIT_7;
+    printf("Toggle BIT 7 = ");
+    print_binary(flags);
+    printf(" (0x%02X)\n", flags);
 }
 
 // Problem 3: Check if specific bits are set
@@ -67,22 +110,32 @@ void problem_3() {
     #define BIT_ENABLED  (1 << 7)
     
     // TODO: Check each flag and print if it's set or cleared
-    // Hint: Use (register & BIT_FLAG) to check
-    // Example: if (status_register & BIT_READY) { printf("Ready\n"); }
+    if (status_register & BIT_READY) { printf("Ready\n"); }
+    if (status_register & BIT_ERROR) { printf("Error\n"); }
+    if (status_register & BIT_BUSY) { printf("Busy\n"); }
+    if (status_register & BIT_ENABLED) { printf("Enabled\n"); }
 }
 
 // Problem 4: Extract nibbles and bytes
 void problem_4() {
     printf("\n--- Problem 4: Extract Nibbles ---\n");
     uint8_t byte_value = 0xA5;  // 10100101
-    
-    // TODO: Extract the high nibble (upper 4 bits)
-    // Hint: Shift right by 4
-    
-    // TODO: Extract the low nibble (lower 4 bits)
-    // Hint: Mask with 0x0F
+    uint8_t high_nibble = byte_value;
+    uint8_t low_nibble = byte_value;
     
     // TODO: Print both nibbles in hex format
+    // TODO: Extract the high nibble (upper 4 bits)
+    high_nibble = high_nibble >> 4;
+    printf("High nibble = ");
+    print_binary(high_nibble);
+    printf(" (0x%02X)\n", high_nibble);
+    
+    // TODO: Extract the low nibble (lower 4 bits)
+    low_nibble = low_nibble & (0b00001111);
+    printf("Low nibble = ");
+    print_binary(low_nibble);
+    printf(" (0x%02X)\n", low_nibble);
+    
 }
 
 int main() {
