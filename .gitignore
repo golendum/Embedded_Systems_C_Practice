@@ -1,0 +1,9 @@
+# Compiled executables
+*.exe
+
+# Object files
+*.o
+*.obj
+
+# Dependency files
+*.d
