@@ -13,9 +13,13 @@ void problem_1() {
     int *ptr = &value;
     
     // TODO: Print the value using direct variable
+    printf("value = %d\n", value);
     // TODO: Print the value using pointer dereference (*ptr)
+    printf("*ptr = %d\n", (*ptr));
     // TODO: Print the address of value using &value
+    printf("&value = %d\n", &value);
     // TODO: Print the pointer value directly
+    printf("ptr = %d\n", ptr);
 }
 
 // Problem 2: Pointer arithmetic
@@ -23,11 +27,18 @@ void problem_2() {
     printf("\n--- Problem 2: Pointer Arithmetic ---\n");
     int array[] = {10, 20, 30, 40, 50};
     int *ptr = array;  // Points to first element
+
+    int arr_size = (sizeof(array) / sizeof(int));
+    printf("Array size = %d\n", arr_size);
     
+    printf("Array:\n[ ");
     // TODO: Print each array element using pointer arithmetic
-    // Hint: array[0] is same as *ptr
-    //       array[1] is same as *(ptr + 1)
-    // Try a loop from 0 to 4
+    for (int i = 0; i < arr_size; i++) {
+        printf("%d", *(ptr + i));
+        if ((i + 1) == arr_size) { printf(" ]"); }
+        else { printf(", "); }
+    }
+    printf("\n");
 }
 
 // Problem 3: Pass by reference
@@ -57,13 +68,20 @@ void problem_4() {
     RegisterSet *reg_ptr = &reg;
     
     // TODO: Set register values using pointer
-    // - Set status to 0x01
-    // - Set control to 0x80
-    // - Set data to 0x1234
-    
-    // Hint: Use (*reg_ptr).member or reg_ptr->member
+    // Set status to 0x01
+    reg_ptr -> status = 0x01;
+    // Set control to 0x80
+    reg_ptr -> control = 0x80;
+    // Set data to 0x1234
+    reg_ptr -> data = 0x1234;
     
     // TODO: Print all values using the pointer
+    printf("status = %d\n", reg_ptr -> status);
+    printf("status = 0x%02X\n", reg_ptr -> status);
+    printf("control = %d\n", reg_ptr -> control);
+    printf("control = 0x%02X\n", reg_ptr -> control);
+    printf("data = %d\n", reg_ptr -> data);
+    printf("data = 0x%02X\n", reg_ptr -> data);
 }
 
 // Problem 5: Void pointers and casting
@@ -75,9 +93,12 @@ void problem_5() {
     
     void *generic_ptr = &int_value;
     // TODO: Cast to int* and print the value
+    printf("int value = %d\n", *(int*)generic_ptr);
     
     generic_ptr = &byte_value;
     // TODO: Cast to uint8_t* and print the value
+    printf("byte value = %d\n", *(uint8_t*)generic_ptr);
+
 }
 
 int main() {
