@@ -45,20 +45,38 @@ GPIOPort GPIO_PORTB;
 void gpio_set_pin_mode(GPIOPort *port, uint8_t pin, uint8_t mode) {
     // gpio_mode uses 2 bits per pin
     // Pin 0 uses bits [1:0], Pin 1 uses bits [3:2], etc.
+    uint8_t shift = 0;
+    while ((pin >> shift) != 1) {
+        shift++;
+    }
+
+    shift = shift * 2;
+    // Clear original bits first (using a mask)
+    port -> gpio_mode &= ~(0b11 << shift);
+
+    // Set relevant pin bits to new mode
+    port -> gpio_mode |= (mode << shift);    
 }
 
 // TODO: Implement gpio_write_pin()
 // Purpose: Set a GPIO pin HIGH
 void gpio_write_pin(GPIOPort *port, uint8_t pin, uint8_t value) {
     // If value is 1, set the bit
+    if (value == 1) {
+        port -> gpio_out |= pin;
+    }
+
     // If value is 0, clear the bit
+    else if (value == 0) {
+        port -> gpio_out &= ~pin;
+    }
 }
 
 // TODO: Implement gpio_read_pin()
 // Purpose: Read a GPIO pin state
 uint8_t gpio_read_pin(GPIOPort *port, uint8_t pin) {
     // Return 1 if pin is high, 0 if low
-    return 0;
+    return (port -> gpio_in & pin) ? 1 : 0;
 }
 
 // TODO: Implement interrupt handler
@@ -73,13 +91,14 @@ void gpio_interrupt_handler(GPIOPort *port) {
 // TODO: Implement gpio_enable_interrupt()
 void gpio_enable_interrupt(GPIOPort *port, uint8_t pin) {
     // Set interrupt enable bit for this pin
+    port -> interrupt_en |= pin;
 }
 
 // TODO: Implement gpio_simulate_interrupt()
 // Simulates an interrupt occurring on a pin
 void gpio_simulate_interrupt(GPIOPort *port, uint8_t pin) {
-    if (port->interrupt_en & (1 << pin)) {
-        port->interrupt_flag |= (1 << pin);
+    if (port->interrupt_en & pin) {
+        port->interrupt_flag |= pin;
         gpio_interrupt_handler(port);
     }
 }
@@ -94,25 +113,42 @@ void project_1_gpio_control() {
     // 1. Initialize GPIO Port A
     printf("Step 1: Initialize GPIO Port A\n");
     // TODO: Set pins 0-2 as outputs, pins 3-5 as inputs
+    gpio_set_pin_mode(&GPIO_PORTA, GPIO_PIN_0, GPIO_MODE_OUTPUT);
+    gpio_set_pin_mode(&GPIO_PORTA, GPIO_PIN_1, GPIO_MODE_OUTPUT);
+    gpio_set_pin_mode(&GPIO_PORTA, GPIO_PIN_2, GPIO_MODE_OUTPUT);
+    
+    gpio_set_pin_mode(&GPIO_PORTA, GPIO_PIN_3, GPIO_MODE_INPUT);
+    gpio_set_pin_mode(&GPIO_PORTA, GPIO_PIN_4, GPIO_MODE_INPUT);
+    gpio_set_pin_mode(&GPIO_PORTA, GPIO_PIN_5, GPIO_MODE_INPUT);
     
     // 2. Write to output pins
     printf("\nStep 2: Write to GPIO pins\n");
     // TODO: Set PIN_0 HIGH
-    // TODO: Set PIN_1 HIGH  
+    gpio_write_pin(&GPIO_PORTA, GPIO_PIN_0, 1);
+    // TODO: Set PIN_1 HIGH
+    gpio_write_pin(&GPIO_PORTA, GPIO_PIN_1, 1);
     // TODO: Set PIN_2 LOW
+    gpio_write_pin(&GPIO_PORTA, GPIO_PIN_2, 0);
     printf("Pins set!\n");
     
     // 3. Read from input pins
     printf("\nStep 3: Read GPIO input pins\n");
-    // TODO: Simulate some input values on PIN_3, PIN_4, PIN_5
+    // TODO: Simulate some input values on PIN_3 (high), PIN_4 (low), PIN_5 (high)
     // Hint: Set GPIO_PORTA.gpio_in directly for simulation
-    
+    GPIO_PORTA.gpio_in = (1 << 3) | (1 << 5);
+
     // TODO: Read and print each pin value
+    printf("Pin 3 = %d\n", gpio_read_pin(&GPIO_PORTA, GPIO_PIN_3));
+    printf("Pin 4 = %d\n", gpio_read_pin(&GPIO_PORTA, GPIO_PIN_4));
+    printf("Pin 5 = %d\n", gpio_read_pin(&GPIO_PORTA, GPIO_PIN_5));
     
+
     // 4. Test interrupts
     printf("\nStep 4: Test interrupt handling\n");
     // TODO: Enable interrupts on PIN_5
+    gpio_enable_interrupt(&GPIO_PORTA, GPIO_PIN_5);
     // TODO: Simulate an interrupt on PIN_5
+    gpio_simulate_interrupt(&GPIO_PORTA, GPIO_PIN_5);
     
     printf("\n");
 }
@@ -133,9 +169,39 @@ typedef struct {
 
 // TODO: Implement:
 // - void led_init(LEDController *ctrl, GPIOPort *port)
+void led_init(LEDController *ctrl, GPIOPort *port) {
+    ctrl -> port = port;
+    ctrl -> led_pin = LED_PIN;
+    ctrl -> button_pin = BUTTON_PIN;
+    ctrl -> blink_count = 0;
+    ctrl -> is_blinking = 0;
+
+    gpio_set_pin_mode(ctrl -> port, ctrl -> led_pin, GPIO_MODE_OUTPUT);
+    gpio_set_pin_mode(ctrl -> port, ctrl -> button_pin, GPIO_MODE_INPUT);
+}
+
 // - void led_toggle(LEDController *ctrl)
+void led_toggle(LEDController *ctrl) {
+    uint8_t led_state = gpio_read_pin(ctrl -> port, ctrl -> led_pin);
+    gpio_write_pin(ctrl -> port, ctrl -> led_pin, !led_state);
+}
+
 // - void led_blink_pattern(LEDController *ctrl, uint32_t num_blinks)
+void led_blink_pattern(LEDController *ctrl, uint32_t num_blinks) {
+    while (ctrl -> blink_count < num_blinks) {
+        led_toggle(ctrl);
+        ctrl -> blink_count++;
+    }
+}
+
 // - void led_button_handler(LEDController *ctrl)  // Handle button press
+void led_button_handler(LEDController *ctrl) {
+    printf("Button pressed! Starting LED blink pattern.\n");
+    ctrl -> is_blinking = 1;
+    led_blink_pattern(ctrl, 10);
+    printf("Blinking finished!\n");
+    ctrl -> is_blinking = 0;
+}
 
 void bonus_led_blinking() {
     printf("=== BONUS: LED Blinking with Button Control ===\n\n");
@@ -143,14 +209,18 @@ void bonus_led_blinking() {
     LEDController led;
     
     // TODO: Initialize LED controller
+    led_init(&led, &GPIO_PORTB);
     // TODO: Simulate button press and handle LED blinking
+    GPIO_PORTB.gpio_in = (1 << 3);
+    led_button_handler(&led);
+    printf("Blink count: %d\n", led.blink_count);
 }
 
 int main() {
     project_1_gpio_control();
     
     // Uncomment when ready:
-    // bonus_led_blinking();
+    bonus_led_blinking();
     
     return 0;
 }
